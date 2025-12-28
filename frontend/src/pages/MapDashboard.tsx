@@ -50,9 +50,10 @@ const MapDashboard: React.FC = () => {
       const response = await api.get('/map/dashboard', {
         params: { countryId: selectedCountry, days },
       });
-      setMapData(response.data.data);
+      setMapData(response.data?.data || null);
     } catch (error: any) {
       message.error('지도 대시보드를 불러오는데 실패했습니다');
+      setMapData(null);
     } finally {
       setLoading(false);
     }

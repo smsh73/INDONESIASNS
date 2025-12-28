@@ -34,9 +34,10 @@ const CollectionJobs: React.FC = () => {
       if (selectedPlatform) params.platform = selectedPlatform;
 
       const response = await api.get('/collection/jobs', { params });
-      setJobs(response.data.data);
+      setJobs(Array.isArray(response.data?.data) ? response.data.data : []);
     } catch (error: any) {
       message.error('수집 작업 목록을 불러오는데 실패했습니다');
+      setJobs([]);
     } finally {
       setLoading(false);
     }

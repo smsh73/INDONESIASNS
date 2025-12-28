@@ -69,11 +69,14 @@ const Dashboard: React.FC = () => {
         api.get('/dashboard/sentiment?days=7'),
       ]);
 
-      setStats(statsRes.data.data);
-      setTrends(trendsRes.data.data);
-      setSentimentData(sentimentRes.data.data);
+      setStats(statsRes.data?.data || null);
+      setTrends(Array.isArray(trendsRes.data?.data) ? trendsRes.data.data : []);
+      setSentimentData(Array.isArray(sentimentRes.data?.data) ? sentimentRes.data.data : []);
     } catch (error: any) {
       message.error('데이터를 불러오는데 실패했습니다');
+      setStats(null);
+      setTrends([]);
+      setSentimentData([]);
     } finally {
       setLoading(false);
     }

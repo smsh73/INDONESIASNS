@@ -60,10 +60,12 @@ const MonitoringStatistics: React.FC = () => {
         api.get('/monitoring/statistics/hashtags', { params }),
       ]);
 
-      setKeywordStats(keywordsRes.data.data || []);
-      setHashtagStats(hashtagsRes.data.data || []);
+      setKeywordStats(Array.isArray(keywordsRes.data?.data) ? keywordsRes.data.data : []);
+      setHashtagStats(Array.isArray(hashtagsRes.data?.data) ? hashtagsRes.data.data : []);
     } catch (error: any) {
       message.error('통계 데이터를 불러오는데 실패했습니다');
+      setKeywordStats([]);
+      setHashtagStats([]);
     } finally {
       setLoading(false);
     }

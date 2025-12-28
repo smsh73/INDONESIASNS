@@ -87,10 +87,30 @@ const Workflows: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     try {
+      let triggerConditions, actions;
+      
+      try {
+        triggerConditions = typeof values.triggerConditions === 'string' 
+          ? JSON.parse(values.triggerConditions) 
+          : values.triggerConditions;
+      } catch (e) {
+        message.error('트리거 조건 JSON 형식이 올바르지 않습니다');
+        return;
+      }
+
+      try {
+        actions = typeof values.actions === 'string' 
+          ? JSON.parse(values.actions) 
+          : values.actions;
+      } catch (e) {
+        message.error('액션 JSON 형식이 올바르지 않습니다');
+        return;
+      }
+
       const workflowData = {
         ...values,
-        triggerConditions: JSON.parse(values.triggerConditions),
-        actions: JSON.parse(values.actions),
+        triggerConditions,
+        actions,
       };
 
       if (editingWorkflow) {
@@ -103,7 +123,7 @@ const Workflows: React.FC = () => {
       setIsModalVisible(false);
       fetchWorkflows();
     } catch (error: any) {
-      message.error(editingWorkflow ? '워크플로우 수정에 실패했습니다' : '워크플로우 생성에 실패했습니다');
+      message.error(error.response?.data?.message || (editingWorkflow ? '워크플로우 수정에 실패했습니다' : '워크플로우 생성에 실패했습니다'));
     }
   };
 

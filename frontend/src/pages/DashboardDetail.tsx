@@ -69,10 +69,11 @@ const DashboardDetail: React.FC = () => {
 
       if (endpoint) {
         const response = await api.get(endpoint);
-        setData(response.data.data);
+        setData(response.data?.data || null);
       }
     } catch (error: any) {
       message.error('데이터를 불러오는데 실패했습니다');
+      setData(null);
     } finally {
       setLoading(false);
     }

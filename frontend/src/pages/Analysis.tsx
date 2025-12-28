@@ -38,9 +38,10 @@ const Analysis: React.FC = () => {
       if (filters.region) params.region = filters.region;
 
       const response = await api.get('/analysis', { params });
-      setData(response.data.data);
+      setData(Array.isArray(response.data?.data) ? response.data.data : []);
     } catch (error: any) {
       message.error('분석 데이터를 불러오는데 실패했습니다');
+      setData([]);
     } finally {
       setLoading(false);
     }

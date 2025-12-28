@@ -25,9 +25,10 @@ const Alerts: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get('/alerts');
-      setAlerts(response.data.data);
+      setAlerts(Array.isArray(response.data?.data) ? response.data.data : []);
     } catch (error: any) {
       message.error('알림을 불러오는데 실패했습니다');
+      setAlerts([]);
     } finally {
       setLoading(false);
     }

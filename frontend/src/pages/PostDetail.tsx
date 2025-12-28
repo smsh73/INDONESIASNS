@@ -22,10 +22,13 @@ const PostDetail: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get(`/posts/${id}`);
-      setPost(response.data.data);
-      setMentions(response.data.data.mentions || []);
+      const postData = response.data?.data;
+      setPost(postData || null);
+      setMentions(Array.isArray(postData?.mentions) ? postData.mentions : []);
     } catch (error: any) {
       message.error('포스팅을 불러오는데 실패했습니다');
+      setPost(null);
+      setMentions([]);
     } finally {
       setLoading(false);
     }

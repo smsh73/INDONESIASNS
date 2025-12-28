@@ -31,9 +31,10 @@ const Accounts: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get('/accounts');
-      setAccounts(response.data.data);
+      setAccounts(Array.isArray(response.data?.data) ? response.data.data : []);
     } catch (error: any) {
       message.error('계정 목록을 불러오는데 실패했습니다');
+      setAccounts([]);
     } finally {
       setLoading(false);
     }

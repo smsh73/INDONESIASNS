@@ -27,9 +27,10 @@ const Trends: React.FC = () => {
       if (selectedPlatform) params.platform = selectedPlatform;
 
       const response = await api.get('/trends', { params });
-      setTrends(response.data.data);
+      setTrends(Array.isArray(response.data?.data) ? response.data.data : []);
     } catch (error: any) {
       message.error('트렌드 데이터를 불러오는데 실패했습니다');
+      setTrends([]);
     } finally {
       setLoading(false);
     }
@@ -38,9 +39,10 @@ const Trends: React.FC = () => {
   const fetchInfluentialUsers = async () => {
     try {
       const response = await api.get('/trends/influential?limit=20');
-      setInfluentialUsers(response.data.data);
+      setInfluentialUsers(Array.isArray(response.data?.data) ? response.data.data : []);
     } catch (error: any) {
       message.error('영향력 있는 사용자 데이터를 불러오는데 실패했습니다');
+      setInfluentialUsers([]);
     }
   };
 

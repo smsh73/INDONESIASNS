@@ -33,9 +33,10 @@ const Reports: React.FC = () => {
       }
 
       const response = await api.get(endpoint, { params });
-      setReportData(response.data.data);
+      setReportData(response.data?.data || null);
     } catch (error: any) {
       message.error('보고서를 불러오는데 실패했습니다');
+      setReportData(null);
     } finally {
       setLoading(false);
     }
