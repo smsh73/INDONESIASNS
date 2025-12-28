@@ -145,15 +145,18 @@ export const createCollectionJob = async (req, res, next) => {
         const job = await runKeywordBasedCollectionNow(platform);
         
         // 수집 작업 로그 생성
-        const collectionJob = await addCollectionJob({
-          accountId: null,
+        const { logCollectionJob } = await import('../services/collection/collectionService.js');
+        const collectionJobLog = await logCollectionJob({
           platform,
+          accountId: null,
           jobType: 'public',
+          status: 'running',
+          startedAt: new Date(),
         });
 
         return res.status(201).json({
           success: true,
-          data: collectionJob,
+          data: { id: collectionJobLog, platform, accountId: null, jobType: 'public' },
           message: keywordList.length > 0 || hashtagList.length > 0
             ? `키워드 기반 공개 데이터 수집이 시작되었습니다 (키워드: ${keywordList.length}개, 해시태그: ${hashtagList.length}개)`
             : `공개 데이터 수집이 시작되었습니다 (키워드/해시태그 없음)`,
@@ -193,20 +196,42 @@ export const createCollectionJob = async (req, res, next) => {
         throw new AppError('지원하지 않는 플랫폼입니다', 400);
     }
 
-    const job = await addCollectionJob({
-      accountId: accountId || null,
+    // 수집 작업 로그 생성
+    const collectionJobLog = await logCollectionJob({
       platform,
-      jobType: accountId ? jobType : 'public', // 계정 없으면 공개 데이터 수집
+      accountId: accountId || null,
+      jobType: accountId ? jobType : 'public',
+      status: 'running',
+      startedAt: new Date(),
     });
 
+    // 수집 작업 즉시 실행 (비동기로 실행하여 응답 지연 방지)
     const options = accountId ? {} : { keywords, hashtags };
-    collector.startCollection(accountId || null, accountId ? jobType : 'public', options).catch((error) => {
-      logger.error('Collection job execution error:', error);
-    });
+    collector.startCollection(accountId || null, accountId ? jobType : 'public', options)
+      .then((itemsCollected) => {
+        logger.info(`Collection job completed: ${itemsCollected} items collected`);
+        // 작업 완료 로그 업데이트
+        return pool.query(
+          `UPDATE collection_jobs 
+           SET status = 'completed', items_collected = $1, completed_at = NOW()
+           WHERE id = (SELECT id FROM collection_jobs WHERE platform = $2 AND account_id = $3 ORDER BY created_at DESC LIMIT 1)`,
+          [itemsCollected, platform, accountId || null]
+        );
+      })
+      .catch((error) => {
+        logger.error('Collection job execution error:', error);
+        // 작업 실패 로그 업데이트
+        return pool.query(
+          `UPDATE collection_jobs 
+           SET status = 'failed', error_message = $1, completed_at = NOW()
+           WHERE id = (SELECT id FROM collection_jobs WHERE platform = $2 AND account_id = $3 ORDER BY created_at DESC LIMIT 1)`,
+          [error.message, platform, accountId || null]
+        );
+      });
 
     res.status(201).json({
       success: true,
-      data: job,
+      data: { id: collectionJobLog, platform, accountId: accountId || null, jobType: accountId ? jobType : 'public' },
       message: accountId ? '수집 작업이 시작되었습니다' : '공개 데이터 수집 작업이 시작되었습니다',
     });
   } catch (error) {

@@ -41,6 +41,8 @@ export class FacebookCollector extends BaseCollector {
     let itemsCollected = 0;
 
     try {
+      logger.info(`Facebook public data collection: ${keywords.length} keywords, ${hashtags.length} hashtags`);
+      
       // Facebook Graph API의 공개 검색 기능 사용
       if (this.accessToken) {
         const searchQueries = [...keywords, ...hashtags.map(h => `#${h.replace('#', '')}`)];
@@ -82,14 +84,99 @@ export class FacebookCollector extends BaseCollector {
               }
             }
           } catch (error) {
-            logger.error(`Facebook public search error for query "${query}":`, error);
+            logger.error(`Facebook public search error for query "${query}":`, error.message);
+            // API 에러는 계속 진행
           }
         }
       } else {
-        logger.warn('Facebook access token not available for public data collection');
+        // Access token이 없어도 스크래핑으로 시도
+        logger.warn('Facebook access token not available. Attempting scraping for public data collection.');
+        itemsCollected = await this.collectPublicDataViaScraping(keywords, hashtags);
       }
     } catch (error) {
       logger.error('Facebook public data collection error:', error);
+      // 에러가 발생해도 스크래핑으로 시도
+      try {
+        itemsCollected = await this.collectPublicDataViaScraping(keywords, hashtags);
+      } catch (scrapingError) {
+        logger.error('Facebook scraping also failed:', scrapingError);
+      }
+    }
+
+    logger.info(`Facebook public data collection completed: ${itemsCollected} items collected`);
+    return itemsCollected;
+  }
+
+  // 스크래핑을 통한 공개 데이터 수집
+  async collectPublicDataViaScraping(keywords = [], hashtags = [], options = {}) {
+    let itemsCollected = 0;
+
+    try {
+      const searchQueries = [...hashtags.map(h => h.replace('#', '')), ...keywords];
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+
+      try {
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+
+        for (const query of searchQueries.slice(0, 5)) {
+          try {
+            await page.goto(`https://www.facebook.com/hashtag/${encodeURIComponent(query)}/`, {
+              waitUntil: 'networkidle2',
+              timeout: 30000,
+            });
+
+            await page.waitForTimeout(3000);
+
+            const posts = await page.evaluate(() => {
+              const postElements = document.querySelectorAll('[data-pagelet="FeedUnit"]');
+              const posts = [];
+
+              postElements.slice(0, 10).forEach((element) => {
+                const text = element.innerText;
+                const link = element.querySelector('a[href*="/posts/"]');
+                if (text && link) {
+                  posts.push({
+                    content: text.substring(0, 500),
+                    url: link.href,
+                  });
+                }
+              });
+
+              return posts;
+            });
+
+            for (const post of posts) {
+              try {
+                const postId = post.url.split('/').pop() || `facebook_scraped_${Date.now()}_${Math.random()}`;
+                await savePost({
+                  accountId: null,
+                  platform: 'facebook',
+                  postId: postId,
+                  content: post.content,
+                  authorUsername: 'public',
+                  url: post.url,
+                  hashtags: this.parseHashtags(post.content),
+                  mentions: this.parseMentions(post.content),
+                  postedAt: new Date(),
+                });
+                itemsCollected++;
+              } catch (error) {
+                logger.error(`Error saving scraped Facebook post:`, error);
+              }
+            }
+          } catch (error) {
+            logger.error(`Facebook scraping error for query "${query}":`, error.message);
+          }
+        }
+      } finally {
+        await browser.close();
+      }
+    } catch (error) {
+      logger.error('Facebook public data scraping error:', error);
     }
 
     return itemsCollected;

@@ -19,7 +19,53 @@ const initMonitoringQueue = async () => {
         port: process.env.REDIS_PORT || 6379,
       },
     });
-    logger.info('Monitoring queue initialized');
+
+    // 모니터링 작업 처리 핸들러 추가
+    monitoringQueue.process('monitor-account', async (job) => {
+      const { accountId, platform, keywords, hashtags } = job.data;
+      
+      logger.info(`Processing monitoring job for account ${accountId} on platform ${platform}`);
+      
+      try {
+        // 계정의 최신 포스트 수집 및 모니터링
+        const { InstagramCollector } = await import('../../collectors/instagram/collector.js');
+        const { FacebookCollector } = await import('../../collectors/facebook/collector.js');
+        const { TikTokCollector } = await import('../../collectors/tiktok/collector.js');
+        const { LinkedInCollector } = await import('../../collectors/linkedin/collector.js');
+        
+        let collector;
+        const collectorConfig = {};
+        
+        switch (platform) {
+          case 'instagram':
+            collector = new InstagramCollector(collectorConfig);
+            break;
+          case 'facebook':
+            collector = new FacebookCollector(collectorConfig);
+            break;
+          case 'tiktok':
+            collector = new TikTokCollector(collectorConfig);
+            break;
+          case 'linkedin':
+            collector = new LinkedInCollector(collectorConfig);
+            break;
+          default:
+            throw new Error(`Unsupported platform: ${platform}`);
+        }
+        
+        // 계정의 포스트 수집
+        const itemsCollected = await collector.collectPosts(accountId, {});
+        
+        logger.info(`Monitoring completed for account ${accountId}: ${itemsCollected} items collected`);
+        
+        return { accountId, platform, itemsCollected, keywords, hashtags };
+      } catch (error) {
+        logger.error(`Monitoring job error for account ${accountId}:`, error);
+        throw error; // Queue가 재시도할 수 있도록 에러 전파
+      }
+    });
+
+    logger.info('Monitoring queue initialized with processor');
   } catch (error) {
     logger.error('Monitoring queue initialization error:', error);
     monitoringQueue = null;
@@ -240,6 +286,50 @@ export const checkHashtagMatch = async (hashtags, platform = null) => {
 };
 
 /**
+ * Queue 없이 직접 모니터링 실행
+ */
+const runMonitoringDirectly = async (accountId, platform, keywords, hashtags) => {
+  try {
+    logger.info(`Running monitoring directly for account ${accountId} on platform ${platform}`);
+    
+    const { InstagramCollector } = await import('../../collectors/instagram/collector.js');
+    const { FacebookCollector } = await import('../../collectors/facebook/collector.js');
+    const { TikTokCollector } = await import('../../collectors/tiktok/collector.js');
+    const { LinkedInCollector } = await import('../../collectors/linkedin/collector.js');
+    
+    let collector;
+    const collectorConfig = {};
+    
+    switch (platform) {
+      case 'instagram':
+        collector = new InstagramCollector(collectorConfig);
+        break;
+      case 'facebook':
+        collector = new FacebookCollector(collectorConfig);
+        break;
+      case 'tiktok':
+        collector = new TikTokCollector(collectorConfig);
+        break;
+      case 'linkedin':
+        collector = new LinkedInCollector(collectorConfig);
+        break;
+      default:
+        throw new Error(`Unsupported platform: ${platform}`);
+    }
+    
+    // 계정의 포스트 수집
+    const itemsCollected = await collector.collectPosts(accountId, {});
+    
+    logger.info(`Direct monitoring completed for account ${accountId}: ${itemsCollected} items collected`);
+    
+    return { id: `direct-${accountId}-${Date.now()}`, data: { accountId, platform, itemsCollected } };
+  } catch (error) {
+    logger.error(`Direct monitoring error for account ${accountId}:`, error);
+    throw error;
+  }
+};
+
+/**
  * 계정에 대한 모니터링 작업 시작
  */
 export const startMonitoringForAccount = async (accountId) => {
@@ -261,9 +351,9 @@ export const startMonitoringForAccount = async (accountId) => {
       // Queue가 초기화되지 않았으면 초기화 시도
       await initMonitoringQueue();
       if (!monitoringQueue) {
-        logger.warn('Monitoring queue is not available. Monitoring will be started without queue.');
-        // Queue 없이도 성공 응답 반환 (실제 모니터링은 나중에 수동으로 실행 가능)
-        return { id: `manual-${accountId}`, data: { accountId } };
+        logger.warn('Monitoring queue is not available. Running monitoring directly.');
+        // Queue 없이 직접 실행
+        return await runMonitoringDirectly(accountId, accountData.platform, keywords, hashtags);
       }
     }
     
@@ -283,9 +373,9 @@ export const startMonitoringForAccount = async (accountId) => {
       logger.info(`Monitoring started for account ${accountId}: ${job.id}`);
       return job;
     } catch (queueError) {
-      logger.error('Queue error, but continuing:', queueError);
-      // Queue 에러가 있어도 성공 응답 반환
-      return { id: `manual-${accountId}`, data: { accountId } };
+      logger.error('Queue error, running directly:', queueError);
+      // Queue 에러 시 직접 실행
+      return await runMonitoringDirectly(accountId, accountData.platform, keywords, hashtags);
     }
   } catch (error) {
     logger.error('Start monitoring for account error:', error);

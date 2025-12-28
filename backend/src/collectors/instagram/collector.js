@@ -45,6 +45,8 @@ export class InstagramCollector extends BaseCollector {
       if (this.accessToken) {
         const searchQueries = [...hashtags.map(h => h.replace('#', '')), ...keywords];
         
+        logger.info(`Instagram public data collection: ${searchQueries.length} queries (keywords: ${keywords.length}, hashtags: ${hashtags.length})`);
+        
         for (const query of searchQueries.slice(0, 10)) {
           try {
             // Instagram Graph API 해시태그 검색
@@ -97,14 +99,98 @@ export class InstagramCollector extends BaseCollector {
               }
             }
           } catch (error) {
-            logger.error(`Instagram public search error for query "${query}":`, error);
+            logger.error(`Instagram public search error for query "${query}":`, error.message);
+            // API 에러는 계속 진행
           }
         }
       } else {
-        logger.warn('Instagram access token not available for public data collection');
+        // Access token이 없어도 스크래핑으로 시도
+        logger.warn('Instagram access token not available. Attempting scraping for public data collection.');
+        itemsCollected = await this.collectPublicDataViaScraping(keywords, hashtags);
       }
     } catch (error) {
       logger.error('Instagram public data collection error:', error);
+      // 에러가 발생해도 스크래핑으로 시도
+      try {
+        itemsCollected = await this.collectPublicDataViaScraping(keywords, hashtags);
+      } catch (scrapingError) {
+        logger.error('Instagram scraping also failed:', scrapingError);
+      }
+    }
+
+    logger.info(`Instagram public data collection completed: ${itemsCollected} items collected`);
+    return itemsCollected;
+  }
+
+  // 스크래핑을 통한 공개 데이터 수집
+  async collectPublicDataViaScraping(keywords = [], hashtags = [], options = {}) {
+    let itemsCollected = 0;
+
+    try {
+      const searchQueries = [...hashtags.map(h => h.replace('#', '')), ...keywords];
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+
+      try {
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+
+        for (const query of searchQueries.slice(0, 5)) {
+          try {
+            await page.goto(`https://www.instagram.com/explore/tags/${encodeURIComponent(query)}/`, {
+              waitUntil: 'networkidle2',
+              timeout: 30000,
+            });
+
+            await page.waitForTimeout(3000);
+
+            const posts = await page.evaluate(() => {
+              const postElements = document.querySelectorAll('article > div > div > div > div > a');
+              const posts = [];
+
+              postElements.slice(0, 12).forEach((element) => {
+                const href = element.getAttribute('href');
+                if (href && href.startsWith('/p/')) {
+                  posts.push({
+                    url: `https://www.instagram.com${href}`,
+                  });
+                }
+              });
+
+              return posts;
+            });
+
+            for (const post of posts) {
+              try {
+                const postId = post.url.split('/').filter(Boolean).pop();
+                await savePost({
+                  accountId: null,
+                  platform: 'instagram',
+                  postId: postId || `instagram_scraped_${Date.now()}_${Math.random()}`,
+                  content: '',
+                  authorUsername: 'public',
+                  url: post.url,
+                  mediaUrls: [],
+                  hashtags: [query],
+                  mentions: [],
+                  postedAt: new Date(),
+                });
+                itemsCollected++;
+              } catch (error) {
+                logger.error(`Error saving scraped Instagram post:`, error);
+              }
+            }
+          } catch (error) {
+            logger.error(`Instagram scraping error for query "${query}":`, error.message);
+          }
+        }
+      } finally {
+        await browser.close();
+      }
+    } catch (error) {
+      logger.error('Instagram public data scraping error:', error);
     }
 
     return itemsCollected;

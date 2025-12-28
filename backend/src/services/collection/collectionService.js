@@ -22,7 +22,51 @@ const initCollectionQueue = async () => {
         port: process.env.REDIS_PORT || 6379,
       },
     });
-    logger.info('Collection queue initialized');
+
+    // 수집 작업 처리 핸들러 추가
+    collectionQueue.process('collect-posts', async (job) => {
+      const { accountId, platform, jobType, options = {} } = job.data;
+      
+      logger.info(`Processing collection job: platform=${platform}, accountId=${accountId}, jobType=${jobType}`);
+      
+      try {
+        const { InstagramCollector } = await import('../../collectors/instagram/collector.js');
+        const { FacebookCollector } = await import('../../collectors/facebook/collector.js');
+        const { TikTokCollector } = await import('../../collectors/tiktok/collector.js');
+        const { LinkedInCollector } = await import('../../collectors/linkedin/collector.js');
+        
+        let collector;
+        const collectorConfig = {};
+        
+        switch (platform) {
+          case 'instagram':
+            collector = new InstagramCollector(collectorConfig);
+            break;
+          case 'facebook':
+            collector = new FacebookCollector(collectorConfig);
+            break;
+          case 'tiktok':
+            collector = new TikTokCollector(collectorConfig);
+            break;
+          case 'linkedin':
+            collector = new LinkedInCollector(collectorConfig);
+            break;
+          default:
+            throw new Error(`Unsupported platform: ${platform}`);
+        }
+        
+        const itemsCollected = await collector.startCollection(accountId, jobType, options);
+        
+        logger.info(`Collection job completed: ${itemsCollected} items collected`);
+        
+        return { accountId, platform, jobType, itemsCollected };
+      } catch (error) {
+        logger.error(`Collection job error:`, error);
+        throw error; // Queue가 재시도할 수 있도록 에러 전파
+      }
+    });
+
+    logger.info('Collection queue initialized with processor');
   } catch (error) {
     logger.error('Collection queue initialization error:', error);
     collectionQueue = null;
@@ -220,15 +264,25 @@ export const saveMention = async (mentionData) => {
 
 export const addCollectionJob = async (jobData) => {
   try {
+    // Queue가 없으면 직접 실행하도록 변경
     if (!collectionQueue) {
-      throw new Error('Collection queue is not initialized');
+      await initCollectionQueue();
+      if (!collectionQueue) {
+        logger.warn('Collection queue is not available. Job will be executed directly.');
+        // Queue 없이도 작업 로그만 생성하고 직접 실행은 호출자가 처리
+        return { id: `direct-${Date.now()}`, data: jobData };
+      }
     }
-    const job = await collectionQueue.add(jobData);
-    logger.info(`Collection job added: ${job.id}`);
+    
+    const job = await collectionQueue.add('collect-posts', jobData, {
+      jobId: `collect-${jobData.platform}-${jobData.accountId || 'public'}-${Date.now()}`,
+    });
+    logger.info(`Collection job added to queue: ${job.id}`);
     return job;
   } catch (error) {
     logger.error('Add collection job error:', error);
-    throw error;
+    // Queue 에러 시에도 작업 로그는 생성
+    return { id: `direct-${Date.now()}`, data: jobData };
   }
 };
 
@@ -245,15 +299,19 @@ export const logCollectionJob = async (jobData) => {
       completedAt,
     } = jobData;
 
-    await pool.query(
+    const result = await pool.query(
       `INSERT INTO collection_jobs (
         platform, account_id, job_type, status,
         items_collected, error_message, started_at, completed_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [platform, accountId, jobType, status, itemsCollected, errorMessage, startedAt, completedAt]
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id`,
+      [platform, accountId || null, jobType, status, itemsCollected, errorMessage, startedAt, completedAt]
     );
+    
+    return result.rows[0]?.id;
   } catch (error) {
     logger.error('Log collection job error:', error);
+    return null;
   }
 };
 
