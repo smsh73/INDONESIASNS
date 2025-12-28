@@ -35,37 +35,21 @@ const Regions: React.FC = () => {
   const fetchRegionStats = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/regions/${selectedRegion}/stats`);
-      setStats(response.data.data);
+      const response = await api.get(`/regions/${encodeURIComponent(selectedRegion)}/stats`);
+      // 백엔드가 객체를 반환하므로 그대로 사용
+      if (response.data.success && response.data.data) {
+        setStats(response.data.data);
+      } else {
+        setStats(null);
+      }
     } catch (error: any) {
       message.error('지역 통계를 불러오는데 실패했습니다');
+      setStats(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const columns = [
-    {
-      title: '감정 카테고리',
-      dataIndex: 'sentiment_category',
-      key: 'sentiment_category',
-    },
-    {
-      title: '위험 카테고리',
-      dataIndex: 'risk_category',
-      key: 'risk_category',
-    },
-    {
-      title: '포스팅 수',
-      dataIndex: 'total_posts',
-      key: 'total_posts',
-    },
-    {
-      title: '고유 계정 수',
-      dataIndex: 'unique_accounts',
-      key: 'unique_accounts',
-    },
-  ];
 
   return (
     <div className="regions">
@@ -86,14 +70,14 @@ const Regions: React.FC = () => {
         </Select>
       </Card>
 
-      {selectedRegion && (
+      {selectedRegion && stats && (
         <>
           <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
             <Col xs={24} sm={12} lg={6}>
               <Card>
                 <Statistic
                   title="총 포스팅"
-                  value={stats.reduce((sum, s) => sum + (s.total_posts || 0), 0)}
+                  value={stats.total_posts || 0}
                 />
               </Card>
             </Col>
@@ -101,7 +85,7 @@ const Regions: React.FC = () => {
               <Card>
                 <Statistic
                   title="고유 계정"
-                  value={stats.reduce((sum, s) => sum + (s.unique_accounts || 0), 0)}
+                  value={stats.unique_accounts || 0}
                 />
               </Card>
             </Col>
@@ -109,7 +93,7 @@ const Regions: React.FC = () => {
               <Card>
                 <Statistic
                   title="감정 분석"
-                  value={stats.reduce((sum, s) => sum + (s.sentiment_analyses || 0), 0)}
+                  value={stats.sentiment_analyses || 0}
                 />
               </Card>
             </Col>
@@ -117,22 +101,50 @@ const Regions: React.FC = () => {
               <Card>
                 <Statistic
                   title="위험 분류"
-                  value={stats.reduce((sum, s) => sum + (s.risk_classifications || 0), 0)}
+                  value={stats.risk_classifications || 0}
                 />
               </Card>
             </Col>
           </Row>
 
-          <Card title={`${selectedRegion} 상세 통계`}>
-            <Table
-              columns={columns}
-              dataSource={stats}
-              loading={loading}
-              rowKey={(record, index) => `${index}-${record.sentiment_category}-${record.risk_category}`}
-              pagination={false}
-            />
-          </Card>
+          <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+            {stats.sentiment_breakdown && stats.sentiment_breakdown.length > 0 && (
+              <Col xs={24} md={12}>
+                <Card title="감정 분류 상세">
+                  <Table
+                    columns={[
+                      { title: '감정 카테고리', dataIndex: 'category', key: 'category' },
+                      { title: '개수', dataIndex: 'count', key: 'count' },
+                    ]}
+                    dataSource={stats.sentiment_breakdown}
+                    pagination={false}
+                    size="small"
+                  />
+                </Card>
+              </Col>
+            )}
+            {stats.risk_breakdown && stats.risk_breakdown.length > 0 && (
+              <Col xs={24} md={12}>
+                <Card title="위험 분류 상세">
+                  <Table
+                    columns={[
+                      { title: '위험 카테고리', dataIndex: 'category', key: 'category' },
+                      { title: '개수', dataIndex: 'count', key: 'count' },
+                    ]}
+                    dataSource={stats.risk_breakdown}
+                    pagination={false}
+                    size="small"
+                  />
+                </Card>
+              </Col>
+            )}
+          </Row>
         </>
+      )}
+      {selectedRegion && !stats && !loading && (
+        <Card>
+          <p>해당 지역에 대한 통계 데이터가 없습니다.</p>
+        </Card>
       )}
     </div>
   );
