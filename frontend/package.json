@@ -1,0 +1,57 @@
+{
+  "name": "indonesia-sns-frontend",
+  "version": "1.0.0",
+  "description": "인도네시아 검찰청 SNS 분석 AI 포털 프론트엔드",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.1",
+    "react-scripts": "5.0.1",
+    "typescript": "^5.3.3",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "axios": "^1.6.2",
+    "socket.io-client": "^4.6.1",
+    "recharts": "^2.10.3",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^4.2.1",
+    "date-fns": "^3.0.6",
+    "zustand": "^4.4.7",
+    "react-query": "^3.39.3",
+    "antd": "^5.12.8",
+    "@ant-design/icons": "^5.2.6",
+    "lodash": "^4.17.21",
+    "@types/lodash": "^4.14.202",
+    "@types/leaflet": "^1.9.8",
+    "ajv": "^8.12.0",
+    "i18next": "^23.7.6",
+    "react-i18next": "^13.5.0",
+    "i18next-browser-languagedetector": "^7.2.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://localhost:3000"
+}
+

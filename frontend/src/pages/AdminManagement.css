@@ -1,0 +1,20 @@
+.admin-management {
+  padding: 24px;
+}
+
+.admin-management .ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-management .ant-table {
+  background: #fff;
+}
+
+.admin-management .ant-tag {
+  margin: 0;
+}
+
+.admin-management .ant-space {
+  width: 100%;
+}
+

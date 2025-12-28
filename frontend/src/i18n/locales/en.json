@@ -1,0 +1,54 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "analysis": "Analysis",
+    "regions": "Regional Analysis",
+    "map": "Map Dashboard",
+    "trends": "Trends",
+    "reports": "Reports",
+    "alerts": "Alerts",
+    "accounts": "Account Management",
+    "workflows": "Workflows",
+    "collection": "Collection Jobs",
+    "admin": "Administrator",
+    "monitoring": "Monitoring Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "success": "Success",
+    "error": "Error",
+    "confirm": "Confirm"
+  },
+  "login": {
+    "title": "Indonesian Attorney General's Office",
+    "subtitle": "SNS Analysis Portal",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Login",
+    "loginSuccess": "Login successful",
+    "loginFailed": "Login failed"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalPosts": "Total Posts",
+    "totalAccounts": "Total Accounts",
+    "totalAlerts": "Total Alerts",
+    "totalRegions": "Total Regions"
+  },
+  "language": {
+    "select": "Select Language",
+    "korean": "Korean",
+    "english": "English",
+    "indonesian": "Indonesian"
+  }
+}
+

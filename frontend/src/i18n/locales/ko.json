@@ -1,0 +1,54 @@
+{
+  "common": {
+    "dashboard": "대시보드",
+    "analysis": "분석",
+    "regions": "지역별 분석",
+    "map": "지도 대시보드",
+    "trends": "트렌드",
+    "reports": "보고서",
+    "alerts": "알림",
+    "accounts": "계정 관리",
+    "workflows": "워크플로우",
+    "collection": "수집 작업",
+    "admin": "관리자",
+    "monitoring": "모니터링 설정",
+    "profile": "프로필",
+    "logout": "로그아웃",
+    "login": "로그인",
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "수정",
+    "create": "생성",
+    "search": "검색",
+    "filter": "필터",
+    "loading": "로딩 중...",
+    "noData": "데이터가 없습니다",
+    "success": "성공",
+    "error": "오류",
+    "confirm": "확인"
+  },
+  "login": {
+    "title": "인도네시아 검찰청",
+    "subtitle": "SNS 분석 포털",
+    "email": "이메일",
+    "password": "비밀번호",
+    "loginButton": "로그인",
+    "loginSuccess": "로그인 성공",
+    "loginFailed": "로그인 실패"
+  },
+  "dashboard": {
+    "title": "대시보드",
+    "totalPosts": "전체 게시물",
+    "totalAccounts": "전체 계정",
+    "totalAlerts": "전체 알림",
+    "totalRegions": "전체 지역"
+  },
+  "language": {
+    "select": "언어 선택",
+    "korean": "한국어",
+    "english": "English",
+    "indonesian": "Bahasa Indonesia"
+  }
+}
+

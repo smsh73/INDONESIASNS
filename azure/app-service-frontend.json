@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appServiceName": {
+      "type": "string",
+      "defaultValue": "indonesia-sns-frontend",
+      "metadata": {
+        "description": "App Service name for frontend"
+      }
+    },
+    "appServicePlanName": {
+      "type": "string",
+      "defaultValue": "indonesia-sns-plan",
+      "metadata": {
+        "description": "App Service Plan name"
+      }
+    },
+    "backendApiUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Backend API URL"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-02-01",
+      "name": "[parameters('appServiceName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+        "siteConfig": {
+          "linuxFxVersion": "NODE|18-lts",
+          "appSettings": [
+            {
+              "name": "REACT_APP_API_URL",
+              "value": "[parameters('backendApiUrl')]"
+            },
+            {
+              "name": "REACT_APP_WS_URL",
+              "value": "[parameters('backendApiUrl')]"
+            },
+            {
+              "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+              "value": "false"
+            }
+          }
+        },
+        "httpsOnly": true
+      }
+    }
+  ]
+}
+

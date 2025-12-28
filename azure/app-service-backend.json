@@ -1,0 +1,96 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appServiceName": {
+      "type": "string",
+      "defaultValue": "indonesia-sns-backend",
+      "metadata": {
+        "description": "App Service name for backend"
+      }
+    },
+    "appServicePlanName": {
+      "type": "string",
+      "defaultValue": "indonesia-sns-plan",
+      "metadata": {
+        "description": "App Service Plan name"
+      }
+    },
+    "sku": {
+      "type": "string",
+      "defaultValue": "B1",
+      "metadata": {
+        "description": "App Service Plan SKU"
+      }
+    },
+    "postgresqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "PostgreSQL server name"
+      }
+    },
+    "postgresqlDatabaseName": {
+      "type": "string",
+      "defaultValue": "indonesia_sns",
+      "metadata": {
+        "description": "PostgreSQL database name"
+      }
+    },
+    "redisCacheName": {
+      "type": "string",
+      "metadata": {
+        "description": "Redis Cache name"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2021-02-01",
+      "name": "[parameters('appServicePlanName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('sku')]"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-02-01",
+      "name": "[parameters('appServiceName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+        "siteConfig": {
+          "linuxFxVersion": "NODE|18-lts",
+          "appSettings": [
+            {
+              "name": "NODE_ENV",
+              "value": "production"
+            },
+            {
+              "name": "PORT",
+              "value": "8080"
+            },
+            {
+              "name": "DATABASE_URL",
+              "value": "[concat('postgresql://', parameters('postgresqlServerName'), '.postgres.database.azure.com:5432/', parameters('postgresqlDatabaseName'))]"
+            },
+            {
+              "name": "REDIS_URL",
+              "value": "[concat(parameters('redisCacheName'), '.redis.cache.windows.net:6380')]"
+            },
+            {
+              "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+              "value": "false"
+            }
+          }
+        },
+        "httpsOnly": true
+      }
+    }
+  ]
+}
+

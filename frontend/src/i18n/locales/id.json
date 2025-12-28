@@ -1,0 +1,54 @@
+{
+  "common": {
+    "dashboard": "Dasbor",
+    "analysis": "Analisis",
+    "regions": "Analisis Regional",
+    "map": "Dasbor Peta",
+    "trends": "Tren",
+    "reports": "Laporan",
+    "alerts": "Peringatan",
+    "accounts": "Manajemen Akun",
+    "workflows": "Alur Kerja",
+    "collection": "Pekerjaan Pengumpulan",
+    "admin": "Administrator",
+    "monitoring": "Pengaturan Pemantauan",
+    "profile": "Profil",
+    "logout": "Keluar",
+    "login": "Masuk",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "create": "Buat",
+    "search": "Cari",
+    "filter": "Filter",
+    "loading": "Memuat...",
+    "noData": "Tidak ada data",
+    "success": "Berhasil",
+    "error": "Kesalahan",
+    "confirm": "Konfirmasi"
+  },
+  "login": {
+    "title": "Kejaksaan Agung Republik Indonesia",
+    "subtitle": "Portal Analisis SNS",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "loginButton": "Masuk",
+    "loginSuccess": "Masuk berhasil",
+    "loginFailed": "Masuk gagal"
+  },
+  "dashboard": {
+    "title": "Dasbor",
+    "totalPosts": "Total Postingan",
+    "totalAccounts": "Total Akun",
+    "totalAlerts": "Total Peringatan",
+    "totalRegions": "Total Wilayah"
+  },
+  "language": {
+    "select": "Pilih Bahasa",
+    "korean": "Korea",
+    "english": "Inggris",
+    "indonesian": "Indonesia"
+  }
+}
+

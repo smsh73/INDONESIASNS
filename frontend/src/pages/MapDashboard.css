@@ -1,0 +1,9 @@
+.map-dashboard {
+  padding: 24px;
+}
+
+.map-dashboard .custom-marker {
+  background: transparent;
+  border: none;
+}
+

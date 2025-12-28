@@ -1,0 +1,22 @@
+.dashboard {
+  padding: 24px;
+}
+
+.dashboard .ant-card {
+  transition: all 0.3s;
+}
+
+.dashboard .ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.dashboard .ant-statistic-title {
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.dashboard .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}

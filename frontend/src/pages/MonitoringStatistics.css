@@ -1,0 +1,17 @@
+.monitoring-statistics {
+  padding: 24px;
+}
+
+.monitoring-statistics .ant-card {
+  margin-bottom: 24px;
+}
+
+.monitoring-statistics .ant-statistic-title {
+  font-size: 14px;
+  color: #666;
+}
+
+.monitoring-statistics .ant-statistic-content {
+  font-size: 24px;
+  font-weight: bold;
+}

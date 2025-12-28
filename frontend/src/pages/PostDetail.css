@@ -1,0 +1,13 @@
+.post-detail {
+  padding: 24px;
+}
+
+.post-detail .ant-breadcrumb a {
+  cursor: pointer;
+  color: #1890ff;
+}
+
+.post-detail .ant-breadcrumb a:hover {
+  text-decoration: underline;
+}
+

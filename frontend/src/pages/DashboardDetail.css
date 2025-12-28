@@ -1,0 +1,17 @@
+.dashboard-detail {
+  padding: 24px;
+}
+
+.dashboard-detail .ant-breadcrumb {
+  margin-bottom: 16px;
+}
+
+.dashboard-detail .ant-breadcrumb a {
+  cursor: pointer;
+  color: #1890ff;
+}
+
+.dashboard-detail .ant-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
