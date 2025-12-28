@@ -7,10 +7,19 @@ import './Regions.css';
 
 const { Option } = Select;
 
+interface RegionStats {
+  total_posts: number;
+  unique_accounts: number;
+  sentiment_analyses: number;
+  risk_classifications: number;
+  sentiment_breakdown: Array<{ category: string; count: number }>;
+  risk_breakdown: Array<{ category: string; count: number }>;
+}
+
 const Regions: React.FC = () => {
   const [regions, setRegions] = useState<any[]>([]);
   const [selectedRegion, setSelectedRegion] = useState<string>('');
-  const [stats, setStats] = useState<any[]>([]);
+  const [stats, setStats] = useState<RegionStats | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
