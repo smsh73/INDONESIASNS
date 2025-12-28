@@ -38,6 +38,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./frontend
+        file: ./docker/Dockerfile.frontend
         push: true
         tags: |
           ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_IMAGE_NAME }}:${{ github.sha }}
