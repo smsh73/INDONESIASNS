@@ -3,6 +3,7 @@ name: Azure Full Deployment
 on:
   push:
     branches:
+      - clean-main
       - main
     paths-ignore:
       - 'README.md'

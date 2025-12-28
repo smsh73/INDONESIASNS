@@ -3,6 +3,7 @@ name: Azure Frontend CI/CD
 on:
   push:
     branches:
+      - clean-main
       - main
     paths:
       - 'frontend/**'
